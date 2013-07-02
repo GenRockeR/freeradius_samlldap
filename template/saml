@@ -1,0 +1,6 @@
+python saml {
+    mod_instantiate = "freeradius_samlldap"
+    func_instantiate = "instantiate"
+    mod_post_auth= "freeradius_samlldap"
+    func_post_auth= "post_auth"
+}
