@@ -7,6 +7,7 @@ from saml2.server import Server
 
 LDAP_SERVER = 'ldap.id.kent.ac.uk'
 LDAP_BASE_DN = 'o=uni'
+LDAP_ATTR = 'uid='
 
 def eq_len_parts(str, delta=230):
     res = []
@@ -26,7 +27,7 @@ def ldap_attributes(userName, userPassword):
         l = ldap.open(LDAP_SERVER)
 
         ldap_result_id = l.search(
-            LDAP_BASE_DN, ldap.SCOPE_SUBTREE, 'uid=' + userName, None
+            LDAP_BASE_DN, ldap.SCOPE_SUBTREE, LDAP_ATTR + userName, None
         )
 
         result_type, result_data = l.result(ldap_result_id, 0)
