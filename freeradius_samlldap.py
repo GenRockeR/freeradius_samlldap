@@ -57,14 +57,15 @@ def post_auth(authData):
             userPassword = t[1][1:-1]
 
     identity = ldap_attributes(userName, userPassword)
-    #identity = None
+    if identity == None:
+        return radiusd.RLM_MODULE_FAIL
+
     server = Server('idp_conf')
     name_id = server.ident.transient_nameid('urn:mace:kent.ac.uk', 'id')
     assertion = server.create_authn_response(
         identity,
        'id', 'http://localhost',
-       'urn:mace:kent.ac.uk'
-       '',
+       'urn:mace:kent.ac.uk', '',
        name_id=name_id)
 
     attr = 'SAML-AAA-Assertion'
