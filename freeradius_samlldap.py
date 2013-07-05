@@ -62,11 +62,14 @@ def post_auth(authData):
 
     server = Server('idp_conf')
     name_id = server.ident.transient_nameid('urn:mace:kent.ac.uk', 'id')
-    assertion = server.create_authn_response(
+    assertion = server.create_attribute_response(
         identity,
-       'id', 'http://localhost',
-       'urn:mace:kent.ac.uk', '',
-       name_id=name_id)
+        '42', 'http://localhost',
+        'urn:mace:kent.ac.uk', '',
+        name_id=name_id
+    )
+
+    assertion = str(assertion).replace('\n', '')
 
     attr = 'SAML-AAA-Assertion'
     result = (tuple([(attr, x) for x in eq_len_parts("%s" % assertion)]))
