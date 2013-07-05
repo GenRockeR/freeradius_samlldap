@@ -10,9 +10,7 @@ setup(
     author_email = "vg66@kent.ac.uk",
     py_modules = [
         'freeradius_samlldap',
-        'radiusd',
-        'idp_conf',
-        'pathutils'
+        'radiusd'
     ],
     classifiers = [
         'Development Status :: 2 - Pre-Alpha',

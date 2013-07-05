@@ -1,13 +1,18 @@
-#!/usr/bin/env python
+ #!/usr/bin/env python
 
 import ldap
 import os
 import radiusd
-from saml2.server import Server
+from saml2.assertion import Assertion, Policy
+from saml2.saml import NameID, Issuer
+from saml2.saml import NAMEID_FORMAT_ENTITY
+from saml2.saml import NAMEID_FORMAT_TRANSIENT
+from saml2.saml import NAME_FORMAT_URI
+from saml2.attribute_converter import AttributeConverterNOOP
 
-LDAP_SERVER = 'ldap.id.kent.ac.uk'
-LDAP_BASE_DN = 'o=uni'
-LDAP_ATTR = 'uid='
+LDAP_SERVER = 'sec.cs.kent.ac.uk'
+LDAP_BASE_DN = 'o=TAAS,c=gb'
+LDAP_ATTR = 'cn='
 
 def eq_len_parts(str, delta=230):
     res = []
@@ -60,16 +65,25 @@ def post_auth(authData):
     if identity == None:
         return radiusd.RLM_MODULE_FAIL
 
-    server = Server('idp_conf')
-    name_id = server.ident.transient_nameid('urn:mace:kent.ac.uk', 'id')
-    assertion = server.create_authn_response(
-        identity,
-       'id', 'http://localhost',
-       'urn:mace:kent.ac.uk', '',
-       name_id=name_id)
+    policy = Policy({
+        'default': {
+            'lifetime': {'minutes': 60},
+            'attribute_restrictions': None,
+            'name_form': NAME_FORMAT_URI
+        }
+    })
+
+    name_id = NameID(format=NAMEID_FORMAT_TRANSIENT, text='urn:mace:' + LDAP_SERVER)
+    issuer = Issuer(text='moonshot.' + LDAP_SERVER, format=NAMEID_FORMAT_ENTITY)
+    ast = Assertion(identity)
+    assertion = ast.construct('', '', '',
+                        name_id, [AttributeConverterNOOP(NAME_FORMAT_URI)],
+                        policy, issuer=issuer)
+
+    assertion = str(assertion).replace('\n', '')
 
     attr = 'SAML-AAA-Assertion'
-    result = (tuple([(attr, x) for x in eq_len_parts("%s" % assertion)]))
+    result = (tuple([(attr, x) for x in eq_len_parts('%s' % assertion)]))
     return radiusd.RLM_MODULE_UPDATED, result, None
 
 # Usage with rlm_exec
