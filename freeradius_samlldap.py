@@ -10,9 +10,17 @@ from saml2.saml import NAMEID_FORMAT_TRANSIENT
 from saml2.saml import NAME_FORMAT_URI
 from saml2.attribute_converter import AttributeConverterNOOP
 
-LDAP_SERVER = 'sec.cs.kent.ac.uk'
-LDAP_BASE_DN = 'o=TAAS,c=gb'
-LDAP_ATTR = 'cn='
+LDAP_SERVER = 'ldap.id.kent.ac.uk'
+LDAP_BASE_DN = 'o=uni'
+LDAP_ATTR = 'uid='
+
+ATTRS = [
+    'unikentdepartment',
+    'unikentaccounttype',
+    'unikentcollege',
+    'unikentinstitution',
+    'unikentpos'
+]
 
 def eq_len_parts(str, delta=230):
     res = []
@@ -65,6 +73,9 @@ def post_auth(authData):
     if identity == None:
         return radiusd.RLM_MODULE_FAIL
 
+    indentityFiltered = {k: identity[k] for k in set(ATTRS) & set(identity.keys())}
+    print {k: identity[k] for k in set(ATTRS) & set(identity.keys())}
+
     policy = Policy({
         'default': {
             'lifetime': {'minutes': 60},
@@ -75,7 +86,7 @@ def post_auth(authData):
 
     name_id = NameID(format=NAMEID_FORMAT_TRANSIENT, text='urn:mace:' + LDAP_SERVER)
     issuer = Issuer(text='moonshot.' + LDAP_SERVER, format=NAMEID_FORMAT_ENTITY)
-    ast = Assertion(identity)
+    ast = Assertion(indentityFiltered)
     assertion = ast.construct('', '', '',
                         name_id, [AttributeConverterNOOP(NAME_FORMAT_URI)],
                         policy, issuer=issuer)
